@@ -10,6 +10,7 @@ section .text
  sha256:
 %endif
 
+            push    rbp
             push    rbx
             push    r12
             push    r13
@@ -101,29 +102,28 @@ section .text
             mov     rcx, 48
 .extend:
             mov     eax, dword [rdi-15*4]
+            mov     ebx, eax
+            mov     edx, eax
             ror     eax, 7
-            mov     edx, dword [rdi-15*4]
             ror     edx, 18
             xor     eax, edx
-            mov     edx, dword [rdi-15*4]
-            shr     edx, 3
-            xor     eax, edx                    ; eax = s0
+            shr     ebx, 3
+            xor     ebx, eax                    ; ebx = s0
 
-            mov     ebx, dword [rdi-2*4]
-            ror     ebx, 17
-            mov     edx, dword [rdi-2*4]
+            mov     eax, dword [rdi-2*4]
+            mov     ebp, eax
+            mov     edx, eax
+            ror     eax, 17
             ror     edx, 19
-            xor     ebx, edx
-            mov     edx, dword [rdi-2*4]
-            shr     edx, 10
-            xor     ebx, edx                    ; ebx == s1
+            xor     eax, edx
+            shr     ebp, 10
+            xor     eax, ebp                    ; ebx == s1
 
             add     eax, ebx
             add     eax, dword [rdi-16*4]
             add     eax, dword [rdi-7*4]
 
             stosd
-
             loop    .extend
             pop     rdi                         ; rdi == buf
 
@@ -151,7 +151,7 @@ section .text
             add     eax, dword [rsi + rcx*4]    ; k[i]
             add     eax, dword [rdi + rcx*4]    ; w[i]
 
-            push    rax
+            mov     ebp, eax
 
             mov     ebx, r8d
             ror     ebx, 2
@@ -161,7 +161,6 @@ section .text
             ror     ebx, 9
             xor     eax, ebx
                                                 ; eax = S0
-
             ror     ebx, 10
 
             mov     edx, ebx
@@ -174,17 +173,15 @@ section .text
                                                 ; ebx = maj
             add     ebx, eax                    ; ebx = temp2
 
-            pop     rax
-
             mov     r15d, r14d
             mov     r14d, r13d
             mov     r13d, r12d
             mov     r12d, r11d
-            add     r12d, eax
+            add     r12d, ebp
             mov     r11d, r10d
             mov     r10d, r9d
             mov     r9d, r8d
-            add     eax, ebx
+            add     eax, ebp
             mov     r8d, eax
 
             inc     rcx
@@ -247,6 +244,7 @@ section .text
             pop     r13
             pop     r12
             pop     rbx
+            pop     rbp
 
             ret
 
