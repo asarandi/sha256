@@ -127,6 +127,9 @@ section .text
             loop    .extend
             pop     rdi                         ; rdi == buf
 
+            push    rsi
+            lea     rsi, [rel K_const]
+
 .compress:
             mov     ebx, r12d
             ror     ebx, 6
@@ -145,8 +148,7 @@ section .text
 
             add     eax, ebx                    ;
             add     eax, r15d                   ; h
-            lea     rdx, [rel K_const]
-            add     eax, dword [rdx + rcx*4]    ; k[i]
+            add     eax, dword [rsi + rcx*4]    ; k[i]
             add     eax, dword [rdi + rcx*4]    ; w[i]
 
             push    rax
@@ -188,6 +190,8 @@ section .text
             inc     rcx
             cmp     rcx, 64
             jl      .compress
+
+            pop     rsi
 
             mov     rax, r15
             pop     r15
