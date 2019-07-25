@@ -181,8 +181,8 @@ section .text
             mov     r11d, r10d
             mov     r10d, r9d
             mov     r9d, r8d
-            add     eax, ebp
-            mov     r8d, eax
+            add     ebx, ebp
+            mov     r8d, ebx
 
             inc     rcx
             cmp     rcx, 64
