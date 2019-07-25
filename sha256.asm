@@ -66,7 +66,7 @@ section .text
             mov     r14, 0x1f83d9ab             ; h6, G
             mov     r15, 0x5be0cd19             ; h7, H
 .loop:
-            
+
             test    rbx, rbx
             jnz     .chunk
             test    rdx, rdx
@@ -116,7 +116,7 @@ section .text
             xor     ebx, edx
             mov     edx, dword [rdi-2*4]
             shr     edx, 10
-            xor     ebx, edx                    ; ebx = s1
+            xor     ebx, edx                    ; ebx == s1
 
             add     eax, ebx
             add     eax, dword [rdi-16*4]
@@ -125,19 +125,66 @@ section .text
             stosd
 
             loop    .extend
-            pop     rdi                         ; rdi = buf
+            pop     rdi                         ; rdi == buf
 
 .compress:
-            push    rcx
+            mov     ebx, r12d
+            ror     ebx, 6
+            mov     eax, ebx
+            ror     ebx, 5
+            xor     eax, ebx
+            ror     ebx, 14
+            xor     eax, ebx                    ; eax == S1
 
+            ror     ebx, 7                      ; ebx == e
+            mov     edx, ebx
+            not     ebx
+            and     ebx, r14d                   ; G
+            and     edx, r13d
+            xor     ebx, edx                    ; ebx == ch
 
-;
-;
-;
+            add     eax, ebx                    ;
+            add     eax, r15d                   ; h
+            lea     rdx, [rel K_const]
+            add     eax, dword [rdx + rcx*4]    ; k[i]
+            add     eax, dword [rdi + rcx*4]    ; w[i]
 
+            push    rax
 
+            mov     ebx, r8d
+            ror     ebx, 2
+            mov     eax, ebx
+            ror     ebx, 11
+            xor     eax, ebx
+            ror     ebx, 9
+            xor     eax, ebx
+                                                ; eax = S0
 
-            pop     rcx
+            ror     ebx, 10
+
+            mov     edx, ebx
+            and     ebx, r9d                    ; a and b
+            and     edx, r10d                   ; a and c
+            xor     ebx, edx
+            mov     edx, r9d                    ;
+            and     edx, r10d                   ; b and c
+            xor     ebx, edx
+                                                ; ebx = maj
+            add     ebx, eax                    ; ebx = temp2
+
+            pop     rax
+
+            mov     r15d, r14d
+            mov     r14d, r13d
+            mov     r13d, r12d
+            mov     r12d, r11d
+            add     r12d, eax
+            mov     r11d, r10d
+            mov     r10d, r9d
+            mov     r9d, r8d
+            add     eax, ebx
+            mov     r8d, eax
+
             inc     rcx
             cmp     rcx, 64
             jl      .compress
@@ -191,7 +238,6 @@ section .text
             mov     dword [rax + 6*4], r14d
             mov     dword [rax + 7*4], r15d
 
-
             pop     r15
             pop     r14
             pop     r13
@@ -201,6 +247,16 @@ section .text
             ret
 
 section .data
+
+K_const:
+dd   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+dd   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+dd   0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+dd   0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+dd   0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+dd   0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+dd   0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+dd   0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 
 result      times 8 dd 0
 tail        times 128 db 0
